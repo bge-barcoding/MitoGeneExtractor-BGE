@@ -1,14 +1,14 @@
 # MGE via snakemake with added functionality for BGE #
 ## Requirements: ##
-- snakefile
+- snakefile (-standard or -fastpmerge)
 - config.yaml (containing:)
-  - Name of MitoGeneExtractor run (will be used for naming summary stats output and concatenated consensus fasta file).
+  - Name of MitoGeneExtractor run (will be used for naming summary stats CSV output and concatenated consensus fasta file containing barcodes).
   - Path to 'MitoGeneExtractor-vx.y.z' file (see installation guidance on main readme)
   - Path to'samples.csv' (example below)
   - Path to 'protein_references.csv' (example below)
   - Path to output directory (new directories will be created)
   - Gene of interest (e.g. cox1)
-  - Parameters: r (Exonerate relative score threshold) and s (Exonerate minimum score threshold)
+  - Parameters: r (Exonerate relative score threshold) and s (Exonerate minimum score threshold). See guidance on main readme.
 - Activated conda env - See mge_env.yaml
 - Can be run on a cluster using 'snakemake.sh'
 
@@ -39,23 +39,23 @@
 ### 3. Fetch sample-specific protein references using 1_gene_fetch.py ###
 - [1_gene_fetch.py](https://github.com/SchistoDan/MitoGeneExtractor/blob/main/snakemake/1_gene_fetch.py) fetches sample-specific protein (pseudo)references using taxonomic ids and creates protein_references.csv required in config.yaml 
 1_gene_fetch.py usage:
- - *python 1_gene_fetch.py <gene_name> <output_directory> <samples.csv*
+ - *python 1_gene_fetch.py <gene_name> <output_directory> <samples.csv>*
     - <gene_name>: Name of gene to search for in NCBI RefSeq database (e.g., cox1/COX1).
     - <output_directory>: Path to directory to save output files (will save .fasta files and summary CSV in this directory). The directory will be created if it does not exist.
     - <samples.csv>: Path to input CSV file containing Process IDs (ID column) and TaxIDs (taxid column).
-- 'Checkpointing 'available: If the script fails during a run, it can be rerun using the same inputs and it will skip IDs with entries already in the protein_references.csv and with .fasta files already present in the output directory.
-- Manually review the protein_references.csv after running as homonyms may lead to incorrect protein references being fetched on occasion.
+- 'Checkpointing' available: If the script fails during a run, it can be rerun using the same inputs and it will skip IDs with entries already in the protein_references.csv and with .fasta files already present in the output directory.
+- Manually review the protein_references.csv after running as homonyms may possibly lead to incorrect protein references being fetched on occasion.
 
 ### 4. Edit config.yaml for run ###
 - Update config.yaml with neccessary paths and variables.
 
 ### 5. Run snakefile ###
-- Snakefile = 'standard' MGE snakemake pipeline
-- Snakefile-fastp = Utilises a fastp merge step as a QC alternative to the 'standard' MGE pipeline.
+- Snakefile-standard = 'standard' MGE snakemake pipeline (based off of example-analysis-* snakemake pipeline)
+- Snakefile-fastpmerge = Utilises a fastp merge step as a QC alternative to the 'standard' MGE pipeline.
 - Locally: snakemake --snakefile <Snakefile> --configfile <config.yaml>
   - Optional: '-n' for dry run. '-p' to print shell commands to log.
 - Cluster: See snakemake.sh
-  - Optional: '--rerun-incomplete' to resume a previously failed run.
+  - Optional: '--rerun-incomplete' to resume a previous run if failed.
 
 ### Test run ###
 - Raw reads for 12 test samples can be downloaded [here](https://naturalhistorymuseum-my.sharepoint.com/personal/b_price_nhm_ac_uk/_layouts/15/onedrive.aspx?ct=1723035606962&or=Teams%2DHL&ga=1&LOF=1&id=%2Fpersonal%2Fb%5Fprice%5Fnhm%5Fac%5Fuk%2FDocuments%2F%5Ftemp%2F%5FBGEexamples4Felix%2F1%5Fraw%5Fdata). Each read pair must be in seperate subdirectories under a parent directory that can be called anything
@@ -65,10 +65,9 @@
 
 ## Scripts ##
 - add_contam_refs.py = If running Snakefile/Snakefile-fastp using multi-fasta protein reference files containing target and contaminant protein reference sequences, this script will add  contmainant reference sequences to target reference fasta files (see script usage).
-- mge_contam_stats.py = This script (incorporated into 'rule extract_stats_to_csv') will use alignment fasta files and MGE.out files to generate summary statistics.
+- mge_stats.py = This script (incorporated into 'rule extract_stats_to_csv') will use alignment fasta files and MGE.out files to generate summary statistics.
 
 ## To do ##
-- Solve homonym issue in 1_gene_fetch.py
 - Integrate 1_gene_fetch.py into snakefile.
 - Make Workflow Hub compatible.
 - Generate RO-crates.
