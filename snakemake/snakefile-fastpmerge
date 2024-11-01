@@ -279,7 +279,7 @@ rule extract_stats_to_csv:
     output:
         stats=os.path.join(output_dir, "{run_name}.csv")
     params:
-        script="path/to/mge_stats.py",
+        script="./scripts/mge_stats.py",
         out_dir=os.path.join(output_dir, "out/")
     shell:
         """
